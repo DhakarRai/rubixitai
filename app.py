@@ -11,10 +11,24 @@ def add_header(response):
     response.cache_control.public = False
     return response
 
-
 @app.route('/')
 def home():
     return render_template('webpagerubix1.html')
+
+# Add new route for parent page
+@app.route('/parent')
+def parent():
+    return render_template('parent.html')
+
+# Add route for chat page
+@app.route('/chat')
+def chat():
+    return render_template('main1.1.html')
+
+# Add route for subjects page
+@app.route('/subjects')
+def subjects():
+    return render_template('index.html')
 
 # Add a specific route for the logo
 @app.route('/static/images/<path:filename>')

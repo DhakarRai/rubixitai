@@ -40,7 +40,11 @@
             animation: gradientBG 15s ease infinite;
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
+    
 
         .header {
             background: rgba(255, 255, 255, 0.1);
@@ -85,16 +89,21 @@
 
 
         .company-tag {
-            position: absolute;  /* Changed from center to fixed */
-            bottom: 20px;    /* Changed from top to bottom */
-            right: 20px;
+            position: relative;  /* Changed to relative to move with page flow */
+            display: block;      /* Ensure block display */
             text-align: right;
-            z-index: 10;
             color: white;
             font-size: 0.9rem;
-            margin-bottom: 5px;
-            opacity: 0.9;
-            display: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            padding: 8px 15px;
+            border-radius: 10px;
+            margin-top: 10px;    /* Space from content above */
+            margin-bottom: 20px; /* Space at bottom of page */
+            transition: all 0.3s ease;
+            width: fit-content;
+            margin-left: auto;   /* Right align the tag */
+            margin-right: 20px;
         }
         
         .company-tag:hover {
@@ -181,8 +190,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 100px; /* Increased from 50px */
+            margin-top: 100px;
             position: relative;
+            min-height: calc(100vh - 400px); /* Ensure minimum content height */
         }
 
         .ai-assistant {
@@ -237,6 +247,7 @@
             border-radius: 20px;
             padding: 20px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            margin-bottom: 40px; /* Add bottom margin for spacing */
         }
 
         .message-input {
@@ -373,6 +384,16 @@
             .menu-button {
                 width: 90%;
             }
+            .chat-container {
+                margin-bottom: 30px; /* Adjust spacing on mobile */
+            }
+            .company-tag {
+                margin-right: 10px;
+                font-size: 0.8rem;
+                padding: 6px 12px;
+                margin-top: 30px;
+            }
+        
         }
     </style>
 </head>
@@ -385,14 +406,14 @@
 </div>
         
         <div class="nav-icons">
-            <div class="nav-item">
+            <div class="nav-item" onclick="window.location.href='/subjects'" style="cursor: pointer;">
                 <div class="nav-icon">📚</div>
                 Subjects
             </div>
-            <div class="nav-item">
+            <a href="/parent" class="nav-item" style="text-decoration: none;">
                 <div class="nav-icon">👨‍👩‍👦</div>
                 Parents
-            </div>
+            </a>
             <div class="nav-item">
                 <div class="nav-icon">👶</div>
                 Kids
@@ -430,7 +451,7 @@
                 <span class="button-icon">🎮</span>
                 GAMES
             </button>
-            <button class="menu-button">
+            <button class="menu-button" onclick="window.location.href='/chat'">
                 <span class="button-icon">💬</span>
                 CHAT
             </button>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Fun Learning Hub ✨</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(45deg, #FF9A8B 0%, #FF6A88 55%, #FF99AC 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .subjects-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .subject-btn {
+            background: linear-gradient(45deg, #4ECDC4, #556270);
+            color: white;
+            border: none;
+            padding: 1.2rem 2.5rem;
+            font-size: 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .subject-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .subjects-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .subject-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .subject-card:hover {
+            transform: translateY(-10px) rotateX(10deg);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .subject-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .lessons-container {
+            display: none;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .lesson-list, .topics-list {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .lesson-item, .topic-item {
+            padding: 1.2rem;
+            margin: 0.8rem 0;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .lesson-item:hover, .topic-item:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateX(10px);
+            border-color: #4ECDC4;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .lesson-item h4, .topic-item h4 {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .content-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            position: relative;
+            background: white;
+            width: 90%;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            animation: modalZoom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalZoom {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #FF6B6B;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #FF4949;
+            transform: rotate(90deg);
+        }
+
+        #contentText {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2c3e50;
+            padding: 1rem;
+        }
+
+        #contentText h1, #contentText h2, #contentText h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        #contentText h1 { font-size: 2rem; }
+        #contentText h2 { font-size: 1.75rem; }
+        #contentText h3 { font-size: 1.5rem; }
+
+        #contentText p {
+            margin-bottom: 1rem;
+        }
+
+        #contentText ul, #contentText ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        #contentText li {
+            margin-bottom: 0.5rem;
+        }
+
+        #contentText strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        
+        /* Emoji decorations */
+        .subject-card::before {
+            content: '📚';
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .lessons-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .subject-btn {
+                padding: 1rem 2rem;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header animate__animated animate__fadeIn">
+            <h1>✨ Fun Learning Hub ✨</h1>
+        </div>
+
+        <div class="subjects-container animate__animated animate__fadeInUp">
+            <button class="subject-btn" onclick="toggleSubjects()">
+                <i class="fas fa-book-open"></i> Explore Subjects
+            </button>
+        </div>
+
+        <div class="subjects-grid" id="subjectsGrid"></div>
+        <div class="lessons-container" id="lessonsContainer">
+            <div class="lesson-list" id="lessonsList"></div>
+            <div class="topics-list" id="topicsList"></div>
+        </div>
+
+        <div class="content-modal" id="contentModal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">×</span>
+                <div id="contentText"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSubjects() {
+            const grid = document.getElementById('subjectsGrid');
+            if (grid.style.display === 'none' || grid.style.display === '') {
+                fetchSubjects();
+                grid.style.display = 'grid';
+            } else {
+                grid.style.display = 'none';
+            }
+        }
+
+        async function fetchSubjects() {
+            try {
+                const response = await fetch('/api/subjects');
+                const subjects = await response.json();
+                const grid = document.getElementById('subjectsGrid');
+                grid.innerHTML = '';
+                
+                subjects.forEach((subject, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'subject-card animate__animated animate__fadeIn';
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    card.innerHTML = `
+                        <h3>${subject.subject_name}</h3>
+                    `;
+                    card.onclick = () => showLessons(subject.subject_id);
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error fetching subjects:', error);
+            }
+        }
+
+        async function showLessons(subjectId) {
+            try {
+                const response = await fetch(`/api/lessons/${subjectId}`);
+                const lessons = await response.json();
+                const container = document.getElementById('lessonsContainer');
+                const lessonsList = document.getElementById('lessonsList');
+                
+                lessonsList.innerHTML = '';
+                document.getElementById('topicsList').innerHTML = '';
+                
+                lessons.forEach((lesson, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'lesson-item animate__animated animate__fadeInLeft';
+                    item.style.animationDelay = `${index * 0.1}s`;
+                    item.innerHTML = `
+                        <h4>📖 Lesson ${lesson.lesson_number}: ${lesson.lesson_title}</h4>
+                    `;
+                    item.onclick = () => showTopics(subjectId, lesson.lesson_number);
+                    lessonsList.appendChild(item);
+                });
+                
+                container.style.display = 'grid';
+            } catch (error) {
+                console.error('Error fetching lessons:', error);
+            }
+        }
+
+        async function showTopics(subjectId, lessonNumber) {
+            try {
+                const response = await fetch(`/api/topics/${subjectId}/${lessonNumber}`);
+                const topics = await response.json();
+                const topicsList = document.getElementById('topicsList');
+                
+                topicsList.innerHTML = '';
+                
+                topics.forEach((topic, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'topic-item animate__animated animate__fadeInRight';
+                    item.style.animationDelay = `${index * 0.1}s`;
+                    item.innerHTML = `
+                        <h4>🔍 ${topic.Topic_text}</h4>
+                    `;
+                    item.onclick = () => showContent(subjectId, lessonNumber, topic.Topic_id);
+                    topicsList.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error fetching topics:', error);
+            }
+        }
+
+        async function showContent(subjectId, lessonNumber, topicId) {
+            try {
+                const response = await fetch(`/api/content/${subjectId}/${lessonNumber}/${topicId}`);
+                const content = await response.json();
+
+                const parsedContent = marked.parse(content.Info_text);    
+               
+                document.getElementById('contentText').innerHTML = parsedContent;
+                document.getElementById('contentText').innerHTML = content.Info_text;
+                document.getElementById('contentModal').style.display = 'block';
+                document.querySelector('.modal-content').scrollTop = 0;
+            } catch (error) {
+                console.error('Error fetching content:', error);
+                document.getElementById('contentText').innerHTML = 
+                '<p class="error">Error loading content. Please try again.</p>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('contentModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('contentModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
