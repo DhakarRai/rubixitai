@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Match</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #ec4899;
+            --background: #f8fafc;
+            --card-back: #818cf8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+/* Find this in the CSS section and replace the existing body background */
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    /* Replace the existing background with this beautiful gradient */
+    background: linear-gradient(120deg, #FFD54F 0%, #FF7043 40%, #7986CB 60%);
+}
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .game-title {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        body {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+}
+
+.game-title {
+    font-size: 2.5rem;
+    color: #FF6B6B;
+    text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+}
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin: 0 auto;
+            perspective: 1000px;
+            max-width: 550px;
+        }
+
+        .card {
+            position: relative;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5em;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-front {
+            background: white;
+            transform: rotateY(180deg);
+            border: 2px solid var(--primary);
+        }
+
+        .card-back {
+            background: var(--card-back);
+            background-image: linear-gradient(135deg, var(--card-back) 0%, var(--primary) 100%);
+        }
+
+        .card-back::after {
+            content: "?";
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .matched {
+            animation: matched 0.5s ease-in-out;
+        }
+
+        @keyframes matched {
+            0%, 100% { transform: scale(1) rotateY(180deg); }
+            50% { transform: scale(1.1) rotateY(180deg); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }       
+        }
+
+        .card:hover {
+        animation: bounce 0.5s;
+        }
+
+        .level-complete {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            z-index: 10;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translate(-50%, -60%); opacity: 0; }
+            to { transform: translate(-50%, -50%); opacity: 1; }
+        }
+
+        .next-level-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .next-level-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Add this before the @media query */
+.sparkle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #fff;
+    pointer-events: none;
+    animation: sparkle 1s linear forwards;
+}
+
+@keyframes sparkle {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(180deg);
+        opacity: 0;
+    }
+}
+
+.celebration-ribbon {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120%;
+    height: 40px;
+    background: linear-gradient(90deg, #ffd700, #ff69b4, #4f46e5);
+    animation: ribbon-wave 2s linear infinite;
+    border-radius: 20px;
+}
+
+@keyframes ribbon-wave {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* Add these styles before the @media query */
+
+/* Sparkle effect */
+.sparkle {
+    position: absolute;
+    pointer-events: none;
+    animation: sparkleAnim 1s linear forwards;
+}
+
+@keyframes sparkleAnim {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(180deg);
+        opacity: 0;
+    }
+}
+
+/* Lightning blast effect */
+.lightning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+    animation: lightning 1.5s ease-out forwards;
+}
+
+@keyframes lightning {
+    0% {
+        background: transparent;
+    }
+    10% {
+        background: rgba(255, 255, 255, 0.9);
+    }
+    20% {
+        background: transparent;
+    }
+    30% {
+        background: rgba(255, 255, 255, 0.9);
+    }
+    40%, 100% {
+        background: transparent;
+    }
+}
+
+/* Celebration container */
+.celebration-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+}
+
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+            }
+
+            .card-face {
+                font-size: 2.5em;
+            }
+
+            .stats-container {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="music-button" id="musicToggle">
+        <i class="fas fa-volume-up" id="musicIcon"></i>
+    </button>
+
+    <div class="container">
+        <div class="game-header">
+            <h1 class="game-title">Memory Match</h1>
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-label">Level</div>
+                    <div class="stat-value" id="level">1</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Pairs Left</div>
+                    <div class="stat-value" id="pairs-left">0</div>
+                </div>
+            </div>
+        </div>
+        <div id="game-board" class="game-board"></div>
+    </div>
+
+    
+
+    <script>
+        // Background Music Initialization
+const backgroundMusic = new Audio('static/audio/puzzle-game-bright-casual-video-game-music-249202.mp3');
+backgroundMusic.loop = true;
+let isMusicPlaying = false;
+
+// Music Toggle Elements
+const musicToggle = document.getElementById('musicToggle');
+const musicIcon = document.getElementById('musicIcon');
+
+// Toggle Music Function
+function toggleMusic() {
+    if (isMusicPlaying) {
+        backgroundMusic.pause();
+        musicIcon.className = 'fas fa-volume-mute';
+    } else {
+        backgroundMusic.play().catch(error => console.log("Audio playback failed:", error));
+        musicIcon.className = 'fas fa-volume-up';
+    }
+    isMusicPlaying = !isMusicPlaying;
+}
+
+// Add Music Toggle Event Listener
+musicToggle.addEventListener('click', toggleMusic);
+
+// Autoplay Workaround
+document.addEventListener('click', function initAudio() {
+    if (!isMusicPlaying) {
+        toggleMusic();
+    }
+    document.removeEventListener('click', initAudio);
+}, { once: true });
+
+        
+
+        
+        const allEmojis = [
+            '🦊', '🐯', '🦁', '🐼', '🐨', '🐮', '🐷', '🐸', '🦄', '🦒', '🦓', '🦘',
+            '🦛', '🦏', '🐘', '🦍', '🦧', '🐪', '🦩', '🦭', '🐢', '🦎', '🐊', '🐅',
+            '🐆', '🦮', '🦂', '🦕', '🦖', '🐠', '🐡', '🐋', '🐙', '🦑', '🦐', '🦞'
+        ];
+
+        class MemoryGame {
+            constructor() {
+                this.level = 1;
+                this.score = 0;
+                this.flippedCards = [];
+                this.matchedPairs = 0;
+                this.canFlip = true;
+                this.currentEmojis = [];
+                this.totalPairs = 0;
+                
+                this.initializeGame();
+                this.updateStats();
+            }
+
+            shuffleArray(array) {
+                return [...array].sort(() => Math.random() - 0.5);
+            }
+
+            getEmojisForLevel() {
+                const shuffledEmojis = this.shuffleArray(allEmojis);
+                const numPairs = this.level + 2;
+                return shuffledEmojis.slice(0, numPairs);
+            }
+
+            createCard(emoji, index) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.index = index;
+    card.dataset.emoji = emoji;
+    
+    // Randomly select a vibrant background color
+    const cardBackColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FDCB6E', '#6C5CE7', '#A8E6CF'];
+    const randomColor = cardBackColors[Math.floor(Math.random() * cardBackColors.length)];
+    
+    const front = document.createElement('div');
+    front.className = 'card-face card-front';
+    front.textContent = emoji;
+    front.style.backgroundColor = randomColor;
+    front.style.color = 'white';
+    
+    const back = document.createElement('div');
+    back.className = 'card-face card-back';
+    back.style.background = `linear-gradient(135deg, ${randomColor} 0%, #6A5ACD 100%)`;
+    
+    card.appendChild(front);
+    card.appendChild(back);
+    card.addEventListener('click', () => this.flipCard(card));
+    
+    return card;
+}
+            
+
+            initializeGame() {
+                this.currentEmojis = this.getEmojisForLevel();
+                const pairs = [...this.currentEmojis, ...this.currentEmojis];
+                const shuffled = this.shuffleArray(pairs);
+                this.totalPairs = this.currentEmojis.length;
+
+                const gameBoard = document.getElementById('game-board');
+                gameBoard.innerHTML = '';
+
+                shuffled.forEach((emoji, index) => {
+                    const card = this.createCard(emoji, index);
+                    gameBoard.appendChild(card);
+                });
+
+                this.matchedPairs = 0;
+                this.updateStats();
+            }
+
+            flipCard(card) {
+                if (!this.canFlip || this.flippedCards.length >= 2 || 
+                    card.classList.contains('flipped') || 
+                    card.classList.contains('matched')) {
+                    return;
+                }
+
+                card.classList.add('flipped');
+                this.flippedCards.push(card);
+
+                if (this.flippedCards.length === 2) {
+                    this.canFlip = false;
+                    this.checkMatch();
+                }
+            }
+
+            checkMatch() {
+                const [card1, card2] = this.flippedCards;
+                const match = card1.dataset.emoji === card2.dataset.emoji;
+
+                if (match) {
+                    this.handleMatch(card1, card2);
+                } else {
+                    this.handleMismatch(card1, card2);
+                }
+            }
+
+            handleMatch(card1, card2) {
+                card1.classList.add('matched', 'animate__animated', 'animate__pulse');
+                card2.classList.add('matched', 'animate__animated', 'animate__pulse');
+                
+                this.matchedPairs++;
+                this.score += 10 * this.level;
+                this.flippedCards = [];
+                this.canFlip = true;
+
+                if (this.matchedPairs === this.totalPairs) {
+                    this.handleLevelComplete();
+                }
+
+                this.updateStats();
+            }
+
+            handleMismatch(card1, card2) {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    this.flippedCards = [];
+                    this.canFlip = true;
+                }, 1000);
+            }
+
+            handleLevelComplete() {
+    // Create celebration container
+    const celebrationContainer = document.createElement('div');
+    celebrationContainer.className = 'celebration-container';
+    document.body.appendChild(celebrationContainer);
+
+    // Add lightning effect
+    const lightning = document.createElement('div');
+    lightning.className = 'lightning';
+    celebrationContainer.appendChild(lightning);
+
+    // Create sparkles
+    const createSparkle = () => {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.innerHTML = '✨';
+        sparkle.style.left = Math.random() * 100 + 'vw';
+        sparkle.style.top = Math.random() * 100 + 'vh';
+        sparkle.style.fontSize = Math.random() * 20 + 10 + 'px';
+        sparkle.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+        celebrationContainer.appendChild(sparkle);
+
+        // Remove sparkle after animation
+        setTimeout(() => sparkle.remove(), 1000);
+    };
+
+    // Create multiple sparkles
+    for (let i = 0; i < 50; i++) {
+        setTimeout(createSparkle, i * 50);
+    }
+
+    // Remove celebration container after effects
+    setTimeout(() => {
+        celebrationContainer.remove();
+    }, 3000);
+
+    setTimeout(() => {
+        const modal = document.createElement('div');
+        modal.className = 'level-complete animate__animated animate__fadeIn';
+        modal.innerHTML = `
+            <h2 style="color: var(--primary); margin-bottom: 1rem; font-size: 2em; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                🎉 Level ${this.level} Complete! 🎉
+            </h2>
+            <p style="margin-bottom: 1.5rem; font-size: 1.2em;">Score: ${this.score}</p>
+            <button class="next-level-btn">Next Level</button>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add continuous sparkle effect around the modal
+        const addModalSparkles = () => {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.innerHTML = '✨';
+            sparkle.style.position = 'absolute';
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 100 + Math.random() * 50;
+            sparkle.style.left = `calc(50% + ${Math.cos(angle) * distance}px)`;
+            sparkle.style.top = `calc(50% + ${Math.sin(angle) * distance}px)`;
+            sparkle.style.fontSize = Math.random() * 15 + 10 + 'px';
+            modal.appendChild(sparkle);
+
+            setTimeout(() => sparkle.remove(), 1000);
+        };
+
+        // Create modal sparkles
+        const modalSparkleInterval = setInterval(addModalSparkles, 200);
+
+        modal.querySelector('button').addEventListener('click', () => {
+            clearInterval(modalSparkleInterval);
+            this.level++;
+            modal.remove();
+            this.initializeGame();
+        });
+    }, 500);
+}
+
+            updateStats() {
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('pairs-left').textContent = 
+                    this.totalPairs - this.matchedPairs;
+            }
+        }
+
+        // Start the game when the page loads
+        window.addEventListener('load', () => new MemoryGame());
+    </script>
+</body>
+</html>

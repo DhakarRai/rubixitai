@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SuperStudent Game</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        padding: 1rem;
+        background-color: rgb(83, 212, 255);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: none;
+      }
+
+      .game-container {
+        background-color: rgb(0, 83, 128, 0.9);
+        padding: 1.25rem;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(28, 13, 165, 0.1);
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        backdrop-filter: blur(5px);
+      }
+
+      h1 {
+        color: white;
+        font-weight: bold;
+        font-style: italic;
+        text-align: center;
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
+        margin-bottom: 1rem;
+      }
+
+      .header {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1.25rem;
+      }
+
+      .game-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .stat-box {
+        background-color: rgb(103, 129, 217);
+        padding: 0.75rem;
+        border-radius: 5px;
+        text-align: center;
+        color: white;
+      }
+
+      .problem {
+        font-size: clamp(1.5rem, 5vw, 2rem);
+        margin: 1.25rem 0;
+        text-align: center;
+        color: white;
+      }
+
+      .mapping {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 0.75rem;
+        margin: 1.25rem 0;
+      }
+
+      .mapping-item {
+        background-color: rgb(102, 192, 101);
+        padding: 0.75rem;
+        border-radius: 5px;
+        text-align: center;
+        color: white;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 1.25rem 0;
+      }
+
+      input[type="number"] {
+        flex: 1;
+        min-width: 120px;
+        padding: 0.75rem;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      .feedback {
+        margin: 1.25rem 0;
+        padding: 0.75rem;
+        border-radius: 5px;
+        text-align: center;
+      }
+
+      .correct {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .incorrect {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .hints {
+        margin-top: 1.25rem;
+      }
+
+      .hint {
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        background-color: #fff3cd;
+        border-radius: 5px;
+        display: none;
+      }
+
+      .audio-controls {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .game-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .game-start,
+      .game-over-message {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        text-align: center;
+        width: 90%;
+        max-width: 400px;
+        margin: 1rem;
+      }
+
+      .celebration {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      .star,
+      .bird,
+      .cracker {
+        position: absolute;
+        animation: fall linear forwards;
+      }
+
+      .stars-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+        background: linear-gradient(45deg, #1a237e, #000051);
+        overflow: hidden;
+    }
+
+    .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle var(--duration) infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+  }
+
+      @keyframes fall {
+        to {
+          transform: translateY(100vh) rotate(360deg);
+        }
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(100vh) rotate(0deg);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) rotate(360deg);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .game-container {
+          padding: 1rem;
+        }
+
+        .controls {
+          flex-direction: column;
+        }
+
+        input[type="number"] {
+          width: 100%;
+        }
+
+        .mapping {
+          grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stars-container" id="starsContainer"></div>
+    <div class="game-container">
+      <div class="audio-controls">
+        <button onclick="toggleBackgroundMusic()" id="musicToggle">
+          🔇 Music
+        </button>
+        <button onclick="toggleSoundEffects()" id="soundToggle">
+          🔇 Sound FX
+        </button>
+      </div>
+      <div class="header">
+        <h1>SUPER STUDENT GAME</h1>
+        <div class="game-controls">
+          <button onclick="setPause()" id="pauseBtn">Pause</button>
+          <button onclick="setDifficulty(1)" id="easyBtn">Easy</button>
+          <button onclick="setDifficulty(2)" id="hardBtn">Hard</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-box">Score: <span id="score">0</span></div>
+        <div class="stat-box">Timer: <span id="timer">30</span>s</div>
+        <div class="stat-box">Level: <span id="difficulty">Easy</span></div>
+      </div>
+
+      <div class="problem" id="problem"></div>
+      <div class="mapping" id="mapping"></div>
+
+      <div class="controls">
+        <input type="number" id="answer" placeholder="Enter your answer" />
+        <button onclick="checkAnswer()" id="submitBtn">Submit Answer</button>
+        <button onclick="newProblem()" id="newProblemBtn">New Problem</button>
+        <button onclick="showHint()" id="hintBtn">Show Hint</button>
+      </div>
+
+      <div id="feedback" class="feedback"></div>
+
+      <div class="hints" id="hints"></div>
+
+      <!-- Game Start Overlay -->
+      <div id="gameStartOverlay" class="game-overlay">
+        <div class="game-start">
+          <h2>Super Student Game</h2>
+          <p>Solve mathematical problems by decoding letter-number mappings!</p>
+          <button onclick="startGame()">Start Game</button>
+        </div>
+      </div>
+
+      <!-- Game over Overlay -->
+      <div id="gameoverOverlay" class="game-over-overlay" style="display: none">
+        <div class="game-over-message">
+          <h1>Congratulations!</h1>
+          <p id="gameoverMessage">You are a super student! 🌟</p>
+          <button onclick="restartGame()">Play Again</button>
+        </div>
+      </div>
+    </div>
+
+    <audio id="backgroundMusic" loop>
+      <source src="/audio/background.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="correctSound">
+      <source src="/audio/correct.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="winSound">
+      <source src="/audio/win.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="wrongSound">
+      <source src="/audio/wrong.mp3" type="audio/mpeg" />
+    </audio>
+
+    <div id="celebration" class="celebration"></div>
+
+    <script>
+      let currentProblem = null;
+      let timer = null;
+      let timeLeft = 50;
+      let totalScore = 0;
+      let currentDifficulty = 1;
+      let hintCount = 0;
+      let isMusicEnabled = false;
+      let isSoundEnabled = false;
+      let isPaused = false;
+      let isGameStarted = false;
+
+      function setDifficulty(level) {
+        if (!isGameStarted) return; // Only allow difficulty change after game starts
+
+        currentDifficulty = level;
+        document.getElementById("difficulty").textContent =
+          level === 1 ? "Easy" : "Hard";
+        document.getElementById("easyBtn").style.opacity =
+          level === 1 ? 1 : 0.5;
+        document.getElementById("hardBtn").style.opacity =
+          level === 2 ? 1 : 0.5;
+
+        newProblem();
+      }
+
+      function startGame() {
+        isGameStarted = true;
+        document.getElementById("gameStartOverlay").style.display = "none";
+        if (isMusicEnabled) {
+          backgroundMusic.play();
+        }
+        timeLeft = 50;
+        updateTimer();
+        setDifficulty(1);
+        startTimer();
+      }
+
+      function setPause() {
+        if (!isGameStarted) return; // Only allow pause after game starts
+
+        isPaused = !isPaused;
+        const pauseBtn = document.getElementById("pauseBtn");
+
+        if (isPaused) {
+          clearInterval(timer);
+          timer = null;
+          pauseBtn.textContent = "Continue";
+          if (isMusicEnabled) {
+            backgroundMusic.pause();
+          }
+          // Disable all game controls while paused
+          document.getElementById("submitBtn").disabled = true;
+          document.getElementById("answer").disabled = true;
+          document.getElementById("hintBtn").disabled = true;
+          document.getElementById("newProblemBtn").disabled = true;
+        } else {
+          pauseBtn.textContent = "Pause";
+          if (isMusicEnabled) {
+            backgroundMusic.play();
+          }
+          // Re-enable all game controls
+          document.getElementById("submitBtn").disabled = false;
+          document.getElementById("answer").disabled = false;
+          document.getElementById("hintBtn").disabled = false;
+          document.getElementById("newProblemBtn").disabled = false;
+          startTimer();
+        }
+      }
+
+      function startTimer() {
+        if (timer) {
+          clearInterval(timer);
+        }
+
+        if (!isPaused) {
+          timer = setInterval(() => {
+            if (!isPaused && timeLeft > 0) {
+              timeLeft--;
+              updateTimer();
+              if (timeLeft <= 0) {
+                clearInterval(timer);
+                document.getElementById("submitBtn").disabled = true;
+                document.getElementById("feedback").textContent = "Time's up!";
+                document.getElementById("feedback").className ="feedback incorrect";
+              }
+            }
+          }, 1000);
+        }
+      }
+
+      function updateTimer() {
+        document.getElementById("timer").textContent = timeLeft;
+      }
+      window.onload = () => {
+        const audioFiles = [
+          "backgroundMusic",
+          "correctSound",
+          "wrongSound",
+          "winSound",
+        ];
+        audioFiles.forEach((audioId) => {
+          const audio = document.getElementById(audioId);
+          audio.load();
+        });
+
+        // Reset all game states
+        timeLeft = 50;
+        updateTimer();
+        document.getElementById("score").textContent = "0";
+        document.getElementById("difficulty").textContent = "Easy";
+
+        // Show the start overlay
+        document.getElementById("gameStartOverlay").style.display = "block";
+      };
+
+      function showHint() {
+        if (hintCount < currentProblem.hints.length) {
+          const hintsDiv = document.getElementById("hints");
+          const hintElement = document.createElement("div");
+          hintElement.className = "hint";
+          hintElement.style.display = "block";
+          hintElement.textContent = currentProblem.hints[hintCount];
+          hintsDiv.appendChild(hintElement);
+          hintCount++;
+
+          if (hintCount >= currentProblem.hints.length) {
+            document.getElementById("hintBtn").disabled = true;
+          }
+        }
+      }
+
+      function toggleBackgroundMusic() {
+        const music = document.getElementById("backgroundMusic");
+        const musicBtn = document.getElementById("musicToggle");
+        isMusicEnabled = !isMusicEnabled;
+
+        if (isMusicEnabled) {
+          music.play();
+          musicBtn.textContent = "🔊 Music";
+        } else {
+          music.pause();
+          musicBtn.textContent = "🔇 Music";
+        }
+      }
+
+      function toggleSoundEffects() {
+        const soundBtn = document.getElementById("soundToggle");
+        isSoundEnabled = !isSoundEnabled;
+        soundBtn.textContent = isSoundEnabled ? "🔊 Sound FX" : "🔇 Sound FX";
+      }
+
+      function playSound(soundId) {
+        if (isSoundEnabled) {
+          const sound = document.getElementById(soundId);
+          sound.currentTime = 0;
+          sound.play();
+        }
+      }
+
+      function showGameOverScreen() {
+        document.getElementById("gameOverOverlay").style.display = "flex";
+        document.getElementById("finalScore").textContent = totalScore;
+        document.getElementById("backgroundMusic").pause();
+        playSound("winSound");
+      }
+
+      function restartGame() {
+        totalScore = 0;
+        document.getElementById("score").textContent = "0";
+        document.getElementById("gameOverOverlay").style.display = "none";
+        if (isMusicEnabled) {
+          document.getElementById("backgroundMusic").play();
+        }
+        newProblem();
+      }
+
+      function createStars() {
+        const container = document.getElementById('starsContainer');
+        const starCount = 200;
+
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            
+            // Random size between 1-3px
+            const size = Math.random() * 2 + 1;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            
+            // Random position
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            
+            // Random twinkle duration between 1-5s
+            star.style.setProperty('--duration', `${Math.random() * 4 + 1}s`);
+            
+            container.appendChild(star);
+        }
+    }
+
+      async function newProblem() {
+        try {
+          
+          updateTimer();
+          const response = await fetch(
+            `/get_problem?difficulty=${currentDifficulty}`);
+          currentProblem = await response.json();
+
+          const expressionParts = currentProblem.expression.split(/([+\-*/])/);
+          const operator = expressionParts[1];
+
+          // Construct a display-friendly version of the problem
+          let displayExpression = "";
+          switch (operator) {
+            case "+":
+              displayExpression = `${expressionParts[0]} + ${expressionParts[2]}`;
+              break;
+            case "-":
+              displayExpression = `${expressionParts[0]} - ${expressionParts[2]}`;
+              break;
+            case "*":
+              displayExpression = `${expressionParts[0]} × ${expressionParts[2]}`;
+              break;
+            case "/":
+              displayExpression = `${expressionParts[0]} ÷ ${expressionParts[2]}`;
+              break;
+            default:
+              displayExpression = currentProblem.expression;
+          }
+
+          document.getElementById("problem").textContent = displayExpression;
+
+          const mappingDiv = document.getElementById("mapping");
+          mappingDiv.innerHTML = "";
+          for (const [letter, number] of Object.entries(
+            currentProblem.mapping
+          )) {
+            const item = document.createElement("div");
+            item.className = "mapping-item";
+            item.textContent = `${letter} = ${number}`;
+            mappingDiv.appendChild(item);
+          }
+
+          document.getElementById("answer").value = "";
+          document.getElementById("feedback").textContent = "";
+          document.getElementById("feedback").className = "feedback";
+          document.getElementById("hints").innerHTML = "";
+          document.getElementById("submitBtn").disabled = false;
+          document.getElementById("hintBtn").disabled = false;
+          hintCount = 0;
+
+          startTimer();
+        } catch (error) {
+          console.error("Error generating problem:", error);
+          // document.getElementById("feedback").textContent =
+          //   "Error generating problem. Please try again.";
+          // document.getElementById("feedback").className = "feedback incorrect";
+        }
+      }
+
+      function createStarCelebration() {
+        const container = document.getElementById("celebration");
+        container.innerHTML = "";
+
+        for (let i = 0; i < 20; i++) {
+          const star = document.createElement("div");
+          star.innerHTML = "⭐";
+          star.className = "star";
+          star.style.left = `${Math.random() * 100}%`;
+          star.style.fontSize = `${20 + Math.random() * 30}px`;
+          star.style.animationDuration = `${2 + Math.random() * 3}s`;
+          star.style.animationDelay = `${Math.random() * 2}s`;
+          container.appendChild(star);
+        }
+
+        setTimeout(() => {
+          container.innerHTML = "";
+        }, 5000);
+      }
+
+      function createBirdCelebration(isFlying = true) {
+        const container = document.getElementById("celebration");
+        container.innerHTML = ""; // Clear previous celebration
+
+        for (let i = 0; i < 10; i++) {
+          const bird = document.createElement("div");
+          bird.innerHTML = isFlying ? "🐦" : "🐤";
+          bird.className = "bird";
+          bird.style.left = `${Math.random() * 100}%`;
+          bird.style.fontSize = `${20 + Math.random() * 30}px`;
+          bird.style.animationDuration = `${2 + Math.random() * 3}s`;
+          bird.style.animationDelay = `${Math.random() * 2}s`;
+
+          if (isFlying) {
+            bird.style.animation = "rise ease-out";
+          }
+
+          container.appendChild(bird);
+        }
+
+        setTimeout(() => {
+          container.innerHTML = "";
+        }, 5000);
+      }
+
+      function createCrackerCelebration(isExploding = true) {
+        const container = document.getElementById("celebration");
+        container.innerHTML = ""; // Clear previous celebration
+
+        for (let i = 0; i < 15; i++) {
+          const cracker = document.createElement("div");
+          cracker.innerHTML = isExploding ? "🎉" : "💥";
+          cracker.className = "cracker";
+          cracker.style.left = `${Math.random() * 100}%`;
+          cracker.style.fontSize = `${20 + Math.random() * 30}px`;
+          cracker.style.animationDuration = `${2 + Math.random() * 3}s`;
+          cracker.style.animationDelay = `${Math.random() * 2}s`;
+          container.appendChild(cracker);
+        }
+
+        setTimeout(() => {
+          container.innerHTML = "";
+        }, 5000);
+      }
+
+      function playCorrectCelebration() {
+        const celebrations = [
+          createStarCelebration,
+          () => createBirdCelebration(true),
+          createCrackerCelebration,
+        ];
+
+        const randomCelebration =
+          celebrations[Math.floor(Math.random() * celebrations.length)];
+        randomCelebration();
+      }
+
+      function playIncorrectCelebration() {
+        const celebrations = [
+          () => createBirdCelebration(false),
+          () => createCrackerCelebration(false),
+        ];
+
+        const randomCelebration =
+          celebrations[Math.floor(Math.random() * celebrations.length)];
+        randomCelebration();
+      }
+
+      async function checkAnswer() {
+        const userAnswer = document.getElementById("answer").value;
+        if (!userAnswer) return;
+    
+        clearInterval(timer);
+    
+        try {
+          const response = await fetch("/check_answer", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              answer: userAnswer,
+              correct_answer: currentProblem.result,
+              time_taken: timeLeft,
+              difficulty: currentDifficulty,
+            }),
+          });
+    
+          const result = await response.json();
+          const feedback = document.getElementById("feedback");
+
+          
+          timeLeft = result.remaining_time;
+          updateTimer(timeLeft);
+          
+
+          const isCorrect = Math.abs(parseFloat(userAnswer) - currentProblem.result) < 0.01;
+                    
+    
+          if (result.is_correct) {
+              playSound("correctSound");
+              playCorrectCelebration();
+              totalScore += result.score;
+              document.getElementById("score").textContent = totalScore;
+    
+              if (totalScore >= 1000) {
+                  showGameOverScreen();
+              } else {
+                  feedback.textContent =
+                    "Correct! You earned " + result.score + "  points! +5 seconds bonus!";
+                  feedback.className = "feedback correct";
+    
+                  setTimeout(newProblem, 1000);
+              }
+          } else {
+              playSound("wrongSound");
+              playIncorrectCelebration();
+              feedback.textContent = "Incorrect. try again you can do this! -10 seconds penulty";
+              feedback.className = "feedback incorrect";
+              setTimeout(newProblem, 1000);
+          }
+        } catch (error) {
+            console.error("Error checking answer:", error);
+            document.getElementById("feedback").textContent =
+                "Error processing answer. Please try again.";
+            document.getElementById("feedback").className = "feedback incorrect";
+        }
+      }
+
+      // Load first problem when page loads
+      window.onload = () => {
+        setDifficulty(1);
+        const audioFiles = [
+          "backgroundMusic",
+          "correctSound",
+          "wrongSound",
+          "winSound",
+        ];
+        audioFiles.forEach((audioId) => {
+          const audio = document.getElementById(audioId);
+          audio.load();
+        });
+      };
+
+      // Initialize stars when page loads
+      window.addEventListener('load', () => {
+        createStars();
+    });
+    </script>
+  </body>
+</html>

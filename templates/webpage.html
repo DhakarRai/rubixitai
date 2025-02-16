@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            /* Playful gradient background with soft colors */
+            background: linear-gradient(135deg, #f7d794 0%, #78e08f 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            color: #2d3436;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            margin-bottom: 2rem;
+            border-bottom: 4px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+            color: #e056fd;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #5758BB;
+            font-weight: 600;
+        }
+
+        .games-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+        }
+
+        .game-card {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            position: relative;
+            border: 3px solid #fff;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-img {
+            width: 100%;
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .memory-match {
+            background-image: url('{{ url_for("static", filename="images/m.jpg") }}');
+            background-color: #ff9ff3;
+        }
+
+        .number-game {
+            background-image: url('{{ url_for("static", filename="images/n.jpg") }}');
+            background-color: #feca57;
+        }
+
+        .super-student {
+            background-image: url('{{ url_for("static", filename="images/s.jpg") }}');
+            background-color: #48dbfb;
+        }
+
+        .picture-recognition {
+            background-image: url('{{ url_for("static", filename="images/p.jpg") }}');
+            background-color: #1dd1a1;
+        }
+
+        .game-info {
+            padding: 1.5rem;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+        }
+
+        .game-info h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.8rem;
+            color: #5758BB;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-info p {
+            color: #2d3436;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .play-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(45deg, #e056fd, #686de0);
+            color: white;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .play-btn:hover {
+            background: linear-gradient(45deg, #686de0, #e056fd);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        @media (max-width: 768px) {
+            .games-container {
+                padding: 1rem;
+            }
+            
+            .game-card {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Game Portal</h1>
+        <p>Choose your adventure and start playing!</p>
+    </header>
+
+    <div class="games-container">
+        <div class="game-card" onclick="window.location.href='/memorymatch'">
+            <div class="game-img memory-match"></div>
+            <div class="game-info">
+                <h3>Memory Match</h3>
+                <p>Test your memory skills by matching pairs of cards. How fast can you clear the board?</p>
+                <a href="/memorymatch" class="play-btn">Play Now</a>
+            </div>
+        </div>
+
+        <div class="game-card" onclick="window.location.href='/numbergame'">
+            <div class="game-img number-game"></div>
+            <div class="game-info">
+                <h3>Number Game</h3>
+                <p>Challenge yourself with this exciting number puzzle. Think strategically and solve the puzzle!</p>
+                <a href="/numbergame" class="play-btn">Play Now</a>
+            </div>
+        </div>
+
+        <div class="game-card" onclick="window.location.href='/superstudent'">
+            <div class="game-img super-student"></div>
+            <div class="game-info">
+                <h3>Super Student</h3>
+                <p>Become the ultimate student in this educational adventure. Learn while having fun!</p>
+                <a href="/superstudent" class="play-btn">Play Now</a>
+            </div>
+        </div>
+
+        <div class="game-card" onclick="window.location.href='http://127.0.0.1:5000/'">
+            <div class="game-img picture-recognition"></div>
+            <div class="game-info">
+                <h3>Picture Recognition</h3>
+                <p>Test your visual skills in this exciting picture recognition challenge. Can you identify all the images?</p>
+                <a href="http://127.0.0.1:5000/" class="play-btn">Play Now</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
