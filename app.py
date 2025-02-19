@@ -1,64 +1,132 @@
-from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask import Flask, jsonify, render_template, request, send_from_directory, send_file, redirect, url_for, session
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import Error
 import os
+from pathlib import Path
 import random
 import string
 import math
+import io
+import sqlite3
+import ollama
+import pyttsx3
+import base64
+import logging
+
+
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Add a secret key for session
 CORS(app)  # Enable CORS for all routes
 
+# Ensure template and static folders are properly set
+app.template_folder = os.path.abspath('templates')
+app.static_folder = os.path.abspath('static')
 
+# Database configurations
+EDUCATION_DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': 'Dhakar@2002',
+    'database': 'education_site'
+}
 
-# Database connection function
-def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Dhakar@2002",
-        database="education_site"
-    )
+RUBIX_DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': 'Dhakar@2002',
+    'database': 'rubix'
+}
 
-# Game Configuration Class for Memory Match
-class GameConfig:
+PICTURE_GAME_DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': 'Dhakar@2002',
+    'auth_plugin': 'mysql_native_password',
+    'database': 'picture_game'
+}
+
+# Database connection functions
+def verify_template_exists(template_name):
+    template_path = os.path.join(app.template_folder, template_name)
+    if not os.path.exists(template_path):
+        raise FileNotFoundError(f"Template not found: {template_path}")
+    return True
+
+def get_education_db_connection():
+    return mysql.connector.connect(**EDUCATION_DB_CONFIG)
+
+def get_rubix_db_connection():
+    return mysql.connector.connect(**RUBIX_DB_CONFIG)
+
+def get_picture_game_db_connection():
+    try:
+        connection = mysql.connector.connect(**PICTURE_GAME_DB_CONFIG)
+        return connection
+    except mysql.connector.Error as err:
+        print(f"Database Connection Error: {err}")
+        return None
+
+# Game Logic Classes
+class MemoryMatchGame:
     def __init__(self):
         self.current_level = 1
         self.score = 0
         self.matched_positions = set()
-        self.emojis = [
-            '🐶', '🐱', '🐼', '🐨', '🦁', '🐯', 
-            '🦊', '🦝', '🐮', '🐷', '🐸', '🐙'
-        ]
         self.current_game_emojis = []
+        self.levels = {
+            1: {'grid': 4, 'emojis': ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼']},
+            2: {'grid': 4, 'emojis': ['🍎', '🍌', '🍓', '🍉', '🍇', '🍊', '🍋', '🍍']},
+            3: {'grid': 6, 'emojis': ['🚗', '🚕', '🚌', '🚓', '🚑', '🚒', '🚂', '🚁', '🚢', '⛵', '🚀', '🚲', '🚍', '🚘', '🚖', '🏎️', '🚚', '🚛']},
+        }
+        self.setup_level(self.current_level)
+    
+    def setup_level(self, level):
+        if level > len(self.levels):
+            level = 1  # Reset to level 1 if we've gone through all levels
+        
+        self.matched_positions = set()
+        level_config = self.levels[level]
+        grid_size = level_config['grid']
+        available_emojis = level_config['emojis']
+        
+        num_pairs = (grid_size * grid_size) // 2
+        selected_emojis = random.sample(available_emojis, min(num_pairs, len(available_emojis)))
+        
+        emoji_pairs = selected_emojis * 2
+        
+        while len(emoji_pairs) < (grid_size * grid_size):
+            additional = random.choice(available_emojis)
+            emoji_pairs.extend([additional, additional])
+        
+        random.shuffle(emoji_pairs)
+        self.current_game_emojis = emoji_pairs[:grid_size * grid_size]
     
     def get_level_config(self):
-        num_boxes = self.current_level * 2
-        selected_emojis = random.sample(self.emojis, num_boxes // 2)
-        self.current_game_emojis = selected_emojis * 2
-        random.shuffle(self.current_game_emojis)
-        self.matched_positions = set()
+        level_config = self.levels[self.current_level]
+        grid_size = level_config['grid']
+        
+        hidden_grid = ['❓'] * (grid_size * grid_size)
         
         return {
             'level': self.current_level,
-            'score': self.score,
-            'emojis': self.current_game_emojis,
-            'display_time': 10000
+            'grid_size': grid_size,
+            'cards': hidden_grid,
+            'score': self.score
         }
-    
-    def positions_matched(self):
-        total_positions = len(self.current_game_emojis)
-        return len(self.matched_positions) == total_positions
     
     def record_match(self, pos1, pos2):
         self.matched_positions.add(pos1)
         self.matched_positions.add(pos2)
+    
+    def positions_matched(self):
+        return len(self.matched_positions) == len(self.current_game_emojis)
 
-# Initialize game
-game = GameConfig()
+# Initialize game instance
+game = MemoryMatchGame()
 
-# Math Game Functions
+# Helper Functions for Math Game
 def generate_complex_operation():
     easy_operations = [
         ('+', lambda a, b: (f"{a} + {b}", a + b)),
@@ -140,6 +208,10 @@ def generate_problem(difficulty=1):
         'result': round(result),
         'hints': hints
     }
+    
+current_dir = os.path.dirname(os.path.abspath(__file__))
+app.template_folder = os.path.join(current_dir, 'templates')
+app.static_folder = os.path.join(current_dir, 'static')
 
 # Cache control
 @app.after_request
@@ -149,19 +221,53 @@ def add_header(response):
     response.cache_control.public = False
     return response
 
-# Routes for serving static files
-@app.route('/static/images/<path:filename>')
-def serve_image(filename):
-    return send_from_directory('static/images', filename)
-
-@app.route('/audio/<path:filename>')
-def serve_audio(filename):
-    return send_from_directory('static/audio', filename)
-
 # Main application routes
 @app.route('/')
 def home():
-    return render_template('webpagerubix1.html')
+    try:
+        verify_template_exists('interface.html')
+        return render_template('interface.html')
+    except FileNotFoundError as e:
+        return str(e), 500
+
+# Authentication Routes
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    
+    try:
+        connection = get_rubix_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        user = cursor.fetchone()
+        
+        if user:
+            session['user'] = username
+            print(f"Login successful for user: {username}")
+            return jsonify({"success": True, "message": "Login successful!"}), 200
+        else:
+            print(f"Login failed for user: {username}")
+            return 'Login Failed', 401
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+# Main Navigation Routes
+@app.route('/webpagerubix1')
+def webpagerubix():
+    if 'user' in session:
+        return render_template('webpagerubix1.html')
+    else:
+        return redirect(url_for('home'))
+
+@app.route('/picture_game')
+def picture_game():
+    return render_template('iiii.html')
 
 @app.route('/parent')
 def parent():
@@ -169,7 +275,7 @@ def parent():
 
 @app.route('/chat')
 def chat():
-    return render_template('main1.1.html')
+    return render_template('main1.4.html')
 
 @app.route('/subjects')
 def subjects():
@@ -179,7 +285,6 @@ def subjects():
 def webpage():
     return render_template('webpage.html')
 
-# Memory Match Game Routes
 @app.route('/memorymatch')
 def memorymatch():
     return render_template('memorymatchgame.html')
@@ -192,6 +297,11 @@ def numbergame():
 def superstudent():
     return render_template('superstudent.html')
 
+@app.route('/iiii')
+def picturerecognition():
+    return render_template('iiii.html')
+
+# Game State API Routes for Memory Match
 @app.route('/api/game-state')
 def game_state():
     return jsonify(game.get_level_config())
@@ -247,9 +357,9 @@ def check_answer():
     is_correct = abs(user_answer - correct_answer) < 0.01
     
     if is_correct:
-        remaining_time += 5  # Add 5 seconds for correct answer
+        remaining_time += 5
     else:
-        remaining_time -= 10  # Subtract 10 seconds for wrong answer
+        remaining_time -= 10
         
     remaining_time = max(0, min(50, remaining_time))
     
@@ -280,7 +390,7 @@ def check_answer():
 @app.route('/api/subjects')
 def get_subjects():
     try:
-        connection = get_db_connection()
+        connection = get_education_db_connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute("SELECT * FROM subjects")
         subjects = cursor.fetchall()
@@ -295,7 +405,7 @@ def get_subjects():
 @app.route('/api/lessons/<int:subject_id>')
 def get_lessons(subject_id):
     try:
-        connection = get_db_connection()
+        connection = get_education_db_connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute("""
             SELECT * FROM lessons 
@@ -314,7 +424,7 @@ def get_lessons(subject_id):
 @app.route('/api/topics/<int:subject_id>/<int:lesson_number>')
 def get_topics(subject_id, lesson_number):
     try:
-        connection = get_db_connection()
+        connection = get_education_db_connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute("""
             SELECT * FROM Topics_info 
@@ -333,7 +443,7 @@ def get_topics(subject_id, lesson_number):
 @app.route('/api/content/<int:subject_id>/<int:lesson_number>/<int:topic_id>')
 def get_content(subject_id, lesson_number, topic_id):
     try:
-        connection = get_db_connection()
+        connection = get_education_db_connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute("""
             SELECT * FROM Info 
@@ -348,5 +458,118 @@ def get_content(subject_id, lesson_number, topic_id):
             cursor.close()
             connection.close()
 
+# Picture Recognition Game Routes
+@app.route('/game_image/<int:image_id>')
+def serve_image(image_id):
+    try:
+        connection = get_picture_game_db_connection()
+        if not connection:
+            return 'Database connection failed', 500
+        
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute('SELECT image_data FROM game_questions WHERE id = %s', (image_id,))
+        result = cursor.fetchone()
+        
+        if result and result['image_data']:
+            return send_file(
+                io.BytesIO(result['image_data']),
+                mimetype='image/jpeg',
+                as_attachment=False,
+                download_name=f"image_{image_id}.jpg"
+            )
+            
+        return 'Image not found', 404
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'connection' in locals() and connection.is_connected():
+            connection.close()
+
+@app.route('/get_game_data')
+def get_game_data():
+    try:
+        connection = get_picture_game_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute('SELECT id, correct_answer, hint FROM game_questions')
+        questions = cursor.fetchall()
+            
+        game_data = []
+        for question in questions:
+            cursor.execute('SELECT option_text FROM question_options WHERE question_id = %s', (question['id'],))
+            options = [option['option_text'] for option in cursor.fetchall()]
+                
+            game_data.append({
+                'image_path': f"/game_image/{question['id']}",
+                'correct_answer': question['correct_answer'],
+                'options': options,
+                'hint': question['hint']
+            })
+                
+        return jsonify(game_data)
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'connection' in locals() and connection.is_connected():
+            connection.close()
+
+# Static File Routes
+@app.route('/static/images/<path:filename>')
+def serve_image_static(filename):
+    return send_from_directory('static/images', filename)
+
+@app.route('/audio/<path:filename>')
+def serve_audio(filename):
+    return send_from_directory('static/audio', filename)
+
+# Test Connection Route
+@app.route('/test_connection')
+def test_connection():
+    """Test database connectivity for all databases."""
+    education_connection = get_education_db_connection()
+    picture_game_connection = get_picture_game_db_connection()
+    rubix_connection = get_rubix_db_connection()
+    
+    status = {
+        'education_db': False,
+        'picture_game_db': False,
+        'rubix_db': False
+    }
+    
+    if education_connection:
+        status['education_db'] = True
+        education_connection.close()
+    
+    if picture_game_connection:
+        status['picture_game_db'] = True
+        picture_game_connection.close()
+        
+    if rubix_connection:
+        status['rubix_db'] = True
+        rubix_connection.close()
+    
+    if all(status.values()):
+        return jsonify({"message": "All database connections successful", "status": status}), 200
+    else:
+        return jsonify({"message": "Some database connections failed", "status": status}), 500
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Create necessary directories
+    os.makedirs(app.template_folder, exist_ok=True)
+    os.makedirs(app.static_folder, exist_ok=True)
+    os.makedirs(os.path.join(app.static_folder, 'images'), exist_ok=True)
+    os.makedirs(os.path.join(app.static_folder, 'audio'), exist_ok=True)
+    
+    # You can uncomment either of these run configurations:
+    
+    print(f"Current directory: {os.getcwd()}")
+    print(f"Template folder: {app.template_folder}")
+    print(f"Template exists: {os.path.exists(os.path.join(app.template_folder, 'interface.html'))}")
+    
+    # For local development with debug mode:
+    app.run(host='127.0.0.1', port=5000, debug=True)
+    
+    # For production deployment:
+    # app.run(host="0.0.0.0", port=5000, debug=False)

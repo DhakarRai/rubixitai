@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun Picture Quiz for Kids! 🎮</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(45deg, #A71D31, #1D2671, #92FFC0);
+            background-size: 300% 300%;
+            animation: gradientBG 10s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 800px;
+            padding: 24px;
+            transform-style: preserve-3d;
+            transition: transform 0.3s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            background: linear-gradient(180deg, #FF7E67, #FF6B95); /* Gradient background */
+            padding: 8px; /* Added padding */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+        }
+        
+        .title {
+            color: #FFFFFF; /* Changed text color to white */
+            font-family: 'Fredoka One', cursive;
+            font-size: 3rem; /* Increased font size */
+            margin-bottom: 10px;
+            text-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3); /* Enhanced text shadow */
+            padding: 8px 15px; /* Added padding for the text */
+            border-radius: 8px; /* Further rounded corners */
+            display: inline-block; /* Ensures margin and padding behave correctly */
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 15px 0;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .score {
+            color: #4FACFE;
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .score::before {
+            content: '🏆';
+        }
+
+        .lives {
+            color:rgb(169, 0, 0);
+            font-size: 1.4rem;
+        }
+
+        .timer {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timer-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #f1f5f9;
+        }
+
+        .timer-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(#4FACFE 0%, transparent 0%);
+            transition: all 0.3s;
+        }
+
+        .timer-text {
+            font-size: 1.5rem;  /* Increased from 1.4rem */
+            font-weight: 500;  /* Made bolder */
+            color: #000000;
+            z-index: 1;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            font-family: 'Fredoka One', cursive;  /* Using the fun font */
+            letter-spacing: 1px;
+            -webkit-text-stroke: 1px rgba(0, 0, 0, 0.1);
+        }
+ 
+        .game-area {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .image-container {
+            background: linear-gradient(135deg, #FFD264, #3677FF , #3D0C11);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .image-container:hover {
+            transform: scale(1.02);
+        }
+
+        .game-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #4FACFE, #00f2fe);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 18px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            pointer-events: none;
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(135deg, #f44336, #e53935);
+            pointer-events: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .hint-btn, .skip-btn, .pause-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #FF9A8B, #FF6B95);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 149, 0.3);
+        }
+
+        .pause-btn {
+            background: linear-gradient(135deg, #A18CD1, #FBC2EB);
+        }
+
+        .skip-btn {
+            background: linear-gradient(135deg, #FBC2EB, #A6C1EE);
+        }
+
+        .hint-btn:hover, .skip-btn:hover, .pause-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 149, 0.4);
+        }
+
+        .hint-text {
+            color: #FF6B95;
+            text-align: center;
+            min-height: 48px;
+            padding: 12px;
+            font-size: 1.1rem;
+            background: rgba(255, 235, 238, 0.5);
+            border-radius: 12px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #4FACFE, #00f2fe);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 18px 36px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        @keyframes sparkle {
+            0%, 100% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes blast {
+            0% { transform: scale(0); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .celebration-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #fff, #ff0);
+            border-radius: 50%;
+            animation: sparkle 0.8s ease-in-out;
+        }
+        
+        .blast {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #FFD700, transparent);
+            border-radius: 50%;
+            animation: blast 1s ease-out forwards;
+        }
+
+        @keyframes correctGlow {
+            0% { box-shadow: 0 0 5px #4CAF50, 0 0 10px #4CAF50, 0 0 20px #4CAF50; }
+            50% { box-shadow: 0 0 10px #4CAF50, 0 0 20px #4CAF50, 0 0 40px #4CAF50; }
+            100% { box-shadow: 0 0 5px #4CAF50, 0 0 10px #4CAF50, 0 0 20px #4CAF50; }
+        }
+        
+        @keyframes sparkleButton {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        /* Find your existing .option-btn.correct style and replace it with this: */
+        .option-btn.correct {
+            background: linear-gradient(
+                270deg,
+                #4CAF50,
+                #45a049,
+                #357a38,
+                #45a049,
+                #4CAF50
+            );
+            background-size: 200% 200%;
+            animation: 
+                correctGlow 1.5s ease-in-out infinite,
+                sparkleButton 2s linear infinite;
+            border: 2px solid #4CAF50;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+        
+        /* Find your existing .option-btn.incorrect style and replace it with this: */
+        .option-btn.incorrect {
+            background: linear-gradient(135deg, #f44336, #e53935);
+            animation: wrongShake 0.5s ease-in-out;
+            border: 2px solid #f44336;
+            pointer-events: none;
+        }
+        
+        /* Add this new style for the sparkle effect */
+        .button-sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #A71D31, #1D2671, #92FFC0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .start-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        .start-title {
+            color: #FF6B95;
+            font-family: 'Fredoka One', cursive;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .start-description {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #4FACFE, #00f2fe);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px 40px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+            font-family: 'Fredoka One', cursive;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="start-overlay" id="startOverlay">
+        <div class="start-container">
+            <h1 class="start-title">Magical Picture Quiz! ✨</h1>
+            <p class="start-description">Get ready for an exciting journey through pictures! Test your knowledge, earn points, and have fun! You'll have 30 seconds for each question.</p>
+            <button class="start-btn" onclick="startGame()">Start Adventure! 🚀</button>
+        </div>
+    </div>
+    <div class="game-card" id="gameContainer">
+        <div class="header">
+            <h1 class="title">Magical Picture Quiz! ✨</h1>
+            <div class="stats">
+                <div class="score">Score: <span id="scoreDisplay">0</span></div>
+                <div class="lives">Lives: <span id="livesDisplay">❤️❤️❤️</span></div>
+                <div class="timer">
+                    <div class="timer-circle"></div>
+                    <div class="timer-fill"></div>
+                    <div class="timer-text" id="timerText">30</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="image-container">
+                <img id="gameImage" src="" alt="Quiz Image" class="game-image">
+            </div>
+
+            <div class="controls">
+                <div class="options" id="optionsGrid"></div>
+                <div class="action-buttons">
+                    <button class="hint-btn" onclick="showHint()">Hint 💡</button>
+                    <button class="pause-btn" id="pauseBtn" onclick="togglePause()">Pause ⏸️</button>
+                    <button class="skip-btn" onclick="skipQuestion()">Skip ⏭️</button>
+                </div>
+                <div class="hint-text" id="hintText"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="gameCompleteModal">
+        <div class="modal-content">
+            <h2 style="font-size: 2rem; color: #FF6B95; margin-bottom: 20px; font-family: 'Fredoka One', cursive;">
+                <span id="gameOverTitle">🎉 Game Complete! 🎉</span>
+            </h2>
+            <p style="font-size: 1.6rem; margin-bottom: 20px; color: #4FACFE;">
+                Final Score: <span id="finalScoreDisplay">0</span>
+            </p>
+            <p style="color: #666; margin-bottom: 30px; font-size: 1.2rem;" id="gameOverMessage">
+                Amazing job! Want to play again?
+            </p>
+            <button class="restart-btn" onclick="restartGame()">Play Again 🔄</button>
+        </div>
+    </div>
+
+
+
+    <script>
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let lives = 3;
+        let gameData = [];
+        let currentQuestion = null;
+        let timer = null;
+        let timeLeft = 30;
+        let isPaused = false;
+        let shuffledQuestions = [];
+        let skippedQuestions = [];
+        let pauseStartTime = null;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function updateTimer() {
+            if (isPaused) return;
+            
+            const timerText = document.getElementById('timerText');
+            const timerFill = document.querySelector('.timer-fill');
+            
+            timerText.textContent = timeLeft;
+            const progress = ((30 - timeLeft) / 30) * 100;
+            
+            let fillColor = '#4FACFE';  // Keep the blue fill color
+            if (timeLeft <= 10) {
+                fillColor = '#F53844';  // Keep the warning color for low time
+            }
+            
+            timerFill.style.background = `conic-gradient(${fillColor} ${progress}%, transparent ${progress}%)`;
+            timerText.style.color = '#292E49';  // Always keep timer text black
+        
+            if (timeLeft <= 0) {
+                handleTimeUp();
+            }
+        }
+
+        function handleTimeUp() {
+            clearInterval(timer);
+            lives--;
+            updateLives();
+            
+            if (lives <= 0) {
+                endGame(false);
+                return;
+            }
+            
+            skippedQuestions.push(currentQuestion);
+            nextQuestion();
+        }
+
+        function startTimer() {
+            if (isPaused) return;
+            
+            clearInterval(timer);
+            updateTimer();
+            timer = setInterval(() => {
+                if (!isPaused) {
+                    timeLeft--;
+                    updateTimer();
+                }
+            }, 1000);
+        }
+
+        function togglePause() {
+            const pauseBtn = document.getElementById('pauseBtn');
+            
+            if (!isPaused) {
+                // Pausing the game
+                isPaused = true;
+                clearInterval(timer);
+                pauseBtn.textContent = 'Resume ▶️';
+            } else {
+                // Resuming the game
+                isPaused = false;
+                pauseBtn.textContent = 'Pause ⏸️';
+                startTimer();
+            }
+        }
+
+        function updateLives() {
+            const hearts = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+            document.getElementById('livesDisplay').textContent = hearts;
+        }
+
+        function showHint() {
+            if (currentQuestion && !isPaused) {
+                const hintText = document.getElementById('hintText');
+                hintText.textContent = '';
+                let i = 0;
+                const hint = `💡 ${currentQuestion.hint}`;
+                const typeWriter = setInterval(() => {
+                    if (i < hint.length) {
+                        hintText.textContent += hint.charAt(i);
+                        i++;
+                    } else {
+                        clearInterval(typeWriter);
+                    }
+                }, 50);
+            }
+        }
+
+        function skipQuestion() {
+            if (!isPaused) {
+                skippedQuestions.push(currentQuestion);
+                nextQuestion();
+            }
+        }
+
+        function checkAnswer(selected, correct) {
+            if (isPaused) return;
+            
+            clearInterval(timer);
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach(button => {
+                if (button.textContent === correct) {
+                    button.classList.add('correct');
+                    // Add sparkles to correct button
+                    if (selected === correct) {
+                        addButtonSparkles(button);
+                    }
+                } else if (button.textContent === selected && selected !== correct) {
+                    button.classList.add('incorrect');
+                }
+                button.disabled = true;
+            });
+            
+            if (selected === correct) {
+                score++;
+                document.getElementById('scoreDisplay').textContent = score;
+                createCelebrationEffect(); // If you added this from previous modification
+                setTimeout(() => nextQuestion(), 1500);
+            } else {
+                lives--;
+                updateLives();
+                skippedQuestions.push(currentQuestion);
+                
+                if (lives <= 0) {
+                    setTimeout(() => endGame(false), 1500);
+                } else {
+                    setTimeout(() => nextQuestion(), 1500);
+                }
+            }
+        }
+
+        function nextQuestion() {
+            clearInterval(timer);
+            
+            // Check if we've reached the end of current questions
+            if (currentQuestionIndex >= shuffledQuestions.length) {
+                // If there are skipped questions, use them
+                if (skippedQuestions.length > 0) {
+                    shuffledQuestions = shuffleArray([...skippedQuestions]);
+                    skippedQuestions = [];
+                    currentQuestionIndex = 0;
+                } else {
+                    // If no more questions (regular or skipped), end game
+                    endGame(true);
+                    return;
+                }
+            }
+            
+            loadQuestion(shuffledQuestions[currentQuestionIndex]);
+            currentQuestionIndex++;
+        }
+
+        function loadQuestion(question) {
+            if (!question) return;
+            
+            currentQuestion = question;
+            const gameImage = document.getElementById('gameImage');
+            gameImage.src = question.image_path;
+            document.getElementById('hintText').textContent = '';
+        
+            // Reset timer UI and time
+            timeLeft = 30;  // Reset time for new question
+            pauseStartTime = null;  // Reset pause time
+            const timer = document.querySelector('.timer');
+            timer.innerHTML = `
+                <div class="timer-circle"></div>
+                <div class="timer-fill"></div>
+                <div class="timer-text" id="timerText">30</div>
+            `;
+        
+            // Load options
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+            
+            const shuffledOptions = shuffleArray([...question.options]);
+            
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option, question.correct_answer);
+                optionsGrid.appendChild(button);
+            });
+        
+            startTimer();
+        }
+
+        function endGame(completed) {
+            clearInterval(timer);
+            isPaused = true;
+            const modal = document.getElementById('gameCompleteModal');
+            const title = document.getElementById('gameOverTitle');
+            const message = document.getElementById('gameOverMessage');
+            
+            if (completed) {
+                title.textContent = '🎉 Amazing Job! 🌟';
+                message.textContent = `You've mastered all the questions! Want to play again?`;
+            } else {
+                title.textContent = '💫 Game Over! 💫';
+                message.textContent = 'Great effort! Try again?';
+            }
+            
+            document.getElementById('finalScoreDisplay').textContent = score;
+            modal.style.display = 'flex';
+        }
+
+        function restartGame() {
+            score = 0;  
+            lives = 3;
+            currentQuestionIndex = 0;
+            isPaused = false;
+            skippedQuestions = [];
+            timeLeft = 30;
+    
+            
+            document.getElementById('scoreDisplay').textContent = '0';
+            document.getElementById('livesDisplay').textContent = '❤️❤️❤️';
+            document.getElementById('gameCompleteModal').style.display = 'none';
+            document.getElementById('pauseBtn').textContent = 'Pause ⏸️';
+            document.getElementById('hintText').textContent = '';
+            
+            shuffledQuestions = shuffleArray([...gameData]);
+            
+            if (shuffledQuestions.length > 0) {
+                loadQuestion(shuffledQuestions[0]);
+                currentQuestionIndex = 1;  // Set to 1 since we've loaded the first question
+            }
+        }
+
+        function createCelebrationEffect() {
+            const container = document.createElement('div');
+            container.className = 'celebration-container';
+            document.body.appendChild(container);
+        
+            // Create sparkles
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.style.left = Math.random() * 100 + '%';
+                    sparkle.style.top = Math.random() * 100 + '%';
+                    container.appendChild(sparkle);
+                    
+                    setTimeout(() => sparkle.remove(), 800);
+                }, i * 50);
+            }
+        
+            // Create blasts
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const blast = document.createElement('div');
+                    blast.className = 'blast';
+                    blast.style.left = Math.random() * 100 + '%';
+                    blast.style.top = Math.random() * 100 + '%';
+                    container.appendChild(blast);
+                    
+                    setTimeout(() => blast.remove(), 1000);
+                }, i * 200);
+            }
+        
+            setTimeout(() => container.remove(), 2000);
+        }
+
+        function createButtonSparkle(button) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'button-sparkle';
+            
+            // Random position within the button
+            const x = Math.random() * button.offsetWidth;
+            const y = Math.random() * button.offsetHeight;
+            
+            sparkle.style.left = `${x}px`;
+            sparkle.style.top = `${y}px`;
+            sparkle.style.opacity = '1';
+            
+            button.appendChild(sparkle);
+            
+            // Animate the sparkle
+            const animation = sparkle.animate([
+                { transform: 'scale(0)', opacity: 1 },
+                { transform: 'scale(1.5)', opacity: 0 }
+            ], {
+                duration: 1000,
+                easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+            });
+            
+            animation.onfinish = () => sparkle.remove();
+        }
+        
+        function addButtonSparkles(button) {
+            // Add multiple sparkles
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => createButtonSparkle(button), i * 100);
+            }
+        }
+        
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            initializeGame();
+        }
+        
+        function fetchGameData() {
+            fetch('http://127.0.0.1:5000/get_game_data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && Array.isArray(data)) {
+                        gameData = data.map(question => ({
+                            ...question,
+                            image_path: `http://127.0.0.1:5000${question.image_path}`
+                        }));
+                        shuffledQuestions = shuffleArray([...gameData]);
+                        // Don't call initializeGame() here anymore
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching game data:", error);
+                });
+        }
+
+        
+
+        function initializeGame() {
+            if (shuffledQuestions.length > 0) {
+                updateLives();
+                loadQuestion(shuffledQuestions[currentQuestionIndex]);
+                currentQuestionIndex++;
+            }
+        }
+
+        // Start the game when the page loads
+        fetchGameData();
+    </script>
+</body>
+</html>
