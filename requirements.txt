@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+gunicorn==20.1.0
+MarkupSafe==2.0.1
+>>>>>>> 95403a54a6a948d8719d1736185699c53630622f
 Flask==2.0.1
 Werkzeug==2.0.3
 flask-cors==3.0.10
@@ -7,4 +12,8 @@ itsdangerous==2.0.1
 Jinja2==3.0.3
 MarkupSafe==2.0.1
 six==1.16.0
+<<<<<<< HEAD
 protobuf==3.19.4
+=======
+protobuf==3.19.4
+>>>>>>> 95403a54a6a948d8719d1736185699c53630622f
